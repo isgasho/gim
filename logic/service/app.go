@@ -1,10 +1,10 @@
 package service
 
 import (
+	"context"
 	"gim/logic/cache"
 	"gim/logic/dao"
 	"gim/logic/model"
-	"gim/public/imctx"
 	"gim/public/logger"
 )
 
@@ -13,7 +13,7 @@ type appService struct{}
 var AppService = new(appService)
 
 // Get 注册设备
-func (*appService) Get(ctx *imctx.Context, appId int64) (*model.App, error) {
+func (*appService) Get(ctx context.Context, appId int64) (*model.App, error) {
 	app, err := cache.AppCache.Get(appId)
 	if err != nil {
 		logger.Sugar.Error(err)
@@ -23,7 +23,7 @@ func (*appService) Get(ctx *imctx.Context, appId int64) (*model.App, error) {
 		return app, nil
 	}
 
-	app, err = dao.AppDao.Get(ctx, appId)
+	app, err = dao.AppDao.Get(appId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return app, nil

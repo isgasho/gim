@@ -23,7 +23,7 @@ func (*LogicServerExtServer) SendMessage(ctx context.Context, in *pb.SendMessage
 		AppId:      appId,
 		SenderType: pb.SenderType_ST_BUSINESS,
 	}
-	err = service.MessageService.Send(Context(), sender, *in)
+	err = service.MessageService.Send(ctx, sender, *in)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err

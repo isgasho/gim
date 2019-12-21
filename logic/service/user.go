@@ -1,10 +1,10 @@
 package service
 
 import (
+	"context"
 	"gim/logic/cache"
 	"gim/logic/dao"
 	"gim/logic/model"
-	"gim/public/imctx"
 	"gim/public/imerror"
 	"gim/public/logger"
 )
@@ -15,8 +15,8 @@ var UserService = new(userService)
 
 // Add 添加用户（将业务账号导入IM系统账户）
 //1.添加用户，2.添加用户消息序列号
-func (*userService) Add(ctx *imctx.Context, user model.User) error {
-	affected, err := dao.UserDao.Add(ctx, user)
+func (*userService) Add(ctx context.Context, user model.User) error {
+	affected, err := dao.UserDao.Add(user)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return err
@@ -28,7 +28,7 @@ func (*userService) Add(ctx *imctx.Context, user model.User) error {
 }
 
 // Get 获取用户信息
-func (*userService) Get(ctx *imctx.Context, appId, userId int64) (*model.User, error) {
+func (*userService) Get(ctx context.Context, appId, userId int64) (*model.User, error) {
 	user, err := cache.UserCache.Get(appId, userId)
 	if err != nil {
 		logger.Sugar.Error(err)
@@ -38,7 +38,7 @@ func (*userService) Get(ctx *imctx.Context, appId, userId int64) (*model.User, e
 		return user, nil
 	}
 
-	user, err = dao.UserDao.Get(ctx, appId, userId)
+	user, err = dao.UserDao.Get(appId, userId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -55,8 +55,8 @@ func (*userService) Get(ctx *imctx.Context, appId, userId int64) (*model.User, e
 }
 
 // Get 获取用户信息
-func (*userService) Update(ctx *imctx.Context, user model.User) error {
-	err := dao.UserDao.Update(ctx, user)
+func (*userService) Update(ctx context.Context, user model.User) error {
+	err := dao.UserDao.Update(user)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return err

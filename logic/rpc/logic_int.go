@@ -11,10 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-func Context() *imctx.Context {
-	return imctx.NewContext()
-}
-
 type LogicIntServer struct{}
 
 // SignIn 设备登录
@@ -22,7 +18,7 @@ func (*LogicIntServer) SignIn(ctx context.Context, req *pb.SignInReq) (*pb.SignI
 	logger.Logger.Debug("device sign_in req", zap.Int64("app_id", req.AppId),
 		zap.Int64("user_id", req.UserId), zap.Int64("device_id", req.DeviceId))
 
-	err := service.AuthService.SignIn(Context(), req.AppId, req.UserId, req.DeviceId, req.Token, req.ConnAddr)
+	err := service.AuthService.SignIn(ctx, req.AppId, req.UserId, req.DeviceId, req.Token, req.ConnAddr)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -40,7 +36,7 @@ func (*LogicIntServer) Sync(ctx context.Context, req *pb.SyncReq) (*pb.SyncResp,
 		zap.Int64("user_id", req.UserId), zap.Int64("device_id", req.DeviceId),
 		zap.Int64("seq", req.Seq))
 
-	messages, err := service.MessageService.ListByUserIdAndSeq(Context(), req.AppId, req.UserId, req.Seq)
+	messages, err := service.MessageService.ListByUserIdAndSeq(ctx, req.AppId, req.UserId, req.Seq)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -53,7 +49,7 @@ func (*LogicIntServer) Sync(ctx context.Context, req *pb.SyncReq) (*pb.SyncResp,
 
 // MessageACK 设备收到消息ack
 func (*LogicIntServer) MessageACK(ctx context.Context, req *pb.MessageACKReq) (*pb.MessageACKResp, error) {
-	err := service.DeviceAckService.Update(Context(), req.DeviceId, req.DeviceAck)
+	err := service.DeviceAckService.Update(ctx, req.DeviceId, req.DeviceAck)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -67,7 +63,7 @@ func (*LogicIntServer) MessageACK(ctx context.Context, req *pb.MessageACKReq) (*
 
 // Offline 设备离线
 func (*LogicIntServer) Offline(ctx context.Context, req *pb.OfflineReq) (*pb.OfflineResp, error) {
-	err := service.DeviceService.Offline(Context(), req.AppId, req.UserId, req.DeviceId)
+	err := service.DeviceService.Offline(imctx.NewContext(ctx), req.AppId, req.UserId, req.DeviceId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err

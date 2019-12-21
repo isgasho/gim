@@ -4,14 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+
+	"google.golang.org/grpc/status"
 )
 
 func TestError(t *testing.T) {
-	err := a()
-	e := err.(*UnknownError)
-	for _, v := range e.Stack {
-		fmt.Println(v)
-	}
+	s, ok := status.FromError(errors.New("err"))
+	fmt.Println(ok)
+	fmt.Printf("%+v", *s)
+	fmt.Println(s.Code())
 }
 
 func a() error {

@@ -28,7 +28,7 @@ func (*LogicClientExtServer) RegisterDevice(ctx context.Context, in *pb.Register
 		return nil, imerror.ErrBadRequest
 	}
 
-	id, err := service.DeviceService.Register(Context(), device)
+	id, err := service.DeviceService.Register(ctx, device)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -52,7 +52,7 @@ func (*LogicClientExtServer) AddUser(ctx context.Context, in *pb.AddUserReq) (*p
 		Extra:     in.User.Extra,
 	}
 
-	return &pb.AddUserResp{}, service.UserService.Add(Context(), user)
+	return &pb.AddUserResp{}, service.UserService.Add(ctx, user)
 }
 
 // GetUser 获取用户信息
@@ -63,7 +63,7 @@ func (*LogicClientExtServer) GetUser(ctx context.Context, in *pb.GetUserReq) (*p
 		return &pb.GetUserResp{}, err
 	}
 
-	user, err := service.UserService.Get(Context(), appId, in.UserId)
+	user, err := service.UserService.Get(ctx, appId, in.UserId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.GetUserResp{}, nil
@@ -99,7 +99,7 @@ func (*LogicClientExtServer) SendMessage(ctx context.Context, in *pb.SendMessage
 		SenderId:   userId,
 		DeviceId:   deviceId,
 	}
-	err = service.MessageService.Send(Context(), sender, *in)
+	err = service.MessageService.Send(ctx, sender, *in)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -123,7 +123,7 @@ func (*LogicClientExtServer) CreateGroup(ctx context.Context, in *pb.CreateGroup
 		Type:         in.Group.Type,
 		Extra:        in.Group.Extra,
 	}
-	err = service.GroupService.Create(Context(), group)
+	err = service.GroupService.Create(ctx, group)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.CreateGroupResp{}, err
@@ -147,7 +147,7 @@ func (*LogicClientExtServer) UpdateGroup(ctx context.Context, in *pb.UpdateGroup
 		Type:         in.Group.Type,
 		Extra:        in.Group.Extra,
 	}
-	err = service.GroupService.Update(Context(), group)
+	err = service.GroupService.Update(ctx, group)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.UpdateGroupResp{}, err
@@ -163,7 +163,7 @@ func (*LogicClientExtServer) GetGroup(ctx context.Context, in *pb.GetGroupReq) (
 		return &pb.GetGroupResp{}, err
 	}
 
-	group, err := service.GroupService.Get(Context(), appId, in.GroupId)
+	group, err := service.GroupService.Get(ctx, appId, in.GroupId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.GetGroupResp{}, err
@@ -195,7 +195,7 @@ func (*LogicClientExtServer) GetUserGroups(ctx context.Context, in *pb.GetUserGr
 		return &pb.GetUserGroupsResp{}, err
 	}
 
-	groups, err := service.GroupUserService.ListByUserId(Context(), appId, userId)
+	groups, err := service.GroupUserService.ListByUserId(ctx, appId, userId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.GetUserGroupsResp{}, err
@@ -224,7 +224,7 @@ func (*LogicClientExtServer) AddGroupMember(ctx context.Context, in *pb.AddGroup
 		return &pb.AddGroupMemberResp{}, err
 	}
 
-	err = service.GroupService.AddUser(Context(), appId, in.GroupUser.GroupId, in.GroupUser.UserId, in.GroupUser.Label, in.GroupUser.Extra)
+	err = service.GroupService.AddUser(ctx, appId, in.GroupUser.GroupId, in.GroupUser.UserId, in.GroupUser.Label, in.GroupUser.Extra)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.AddGroupMemberResp{}, err
@@ -241,7 +241,7 @@ func (*LogicClientExtServer) UpdateGroupMember(ctx context.Context, in *pb.Updat
 		return &pb.UpdateGroupMemberResp{}, err
 	}
 
-	err = service.GroupService.UpdateUser(Context(), appId, in.GroupUser.GroupId, in.GroupUser.UserId, in.GroupUser.Label, in.GroupUser.Extra)
+	err = service.GroupService.UpdateUser(ctx, appId, in.GroupUser.GroupId, in.GroupUser.UserId, in.GroupUser.Label, in.GroupUser.Extra)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.UpdateGroupMemberResp{}, err
@@ -258,7 +258,7 @@ func (*LogicClientExtServer) DeleteGroupMember(ctx context.Context, in *pb.Delet
 		return &pb.DeleteGroupMemberResp{}, err
 	}
 
-	err = service.GroupService.DeleteUser(Context(), appId, in.GroupId, in.UserId)
+	err = service.GroupService.DeleteUser(ctx, appId, in.GroupId, in.UserId)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return &pb.DeleteGroupMemberResp{}, err

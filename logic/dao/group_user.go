@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"gim/logic/db"
 	"gim/logic/model"
-	"gim/public/imctx"
 	"gim/public/logger"
 )
 
@@ -13,7 +12,7 @@ type groupUserDao struct{}
 var GroupUserDao = new(groupUserDao)
 
 // ListByUser 获取用户加入的群组信息
-func (*groupUserDao) ListByUserId(ctx *imctx.Context, appId, userId int64) ([]model.Group, error) {
+func (*groupUserDao) ListByUserId(appId, userId int64) ([]model.Group, error) {
 	rows, err := db.DBCli.Query(
 		"select g.group_id,g.name,g.introduction,g.user_num,g.type,g.extra,g.create_time,g.update_time "+
 			"from group_user u "+
@@ -38,7 +37,7 @@ func (*groupUserDao) ListByUserId(ctx *imctx.Context, appId, userId int64) ([]mo
 }
 
 // ListGroupUser 获取群组用户信息
-func (*groupUserDao) ListUser(ctx *imctx.Context, appId, groupId int64) ([]model.GroupUser, error) {
+func (*groupUserDao) ListUser(appId, groupId int64) ([]model.GroupUser, error) {
 	rows, err := db.DBCli.Query(`
 		select user_id,label,extra,create_time,update_time 
 		from group_user
@@ -63,7 +62,7 @@ func (*groupUserDao) ListUser(ctx *imctx.Context, appId, groupId int64) ([]model
 }
 
 // GetGroupUser 获取群组用户信息,用户不存在返回nil
-func (*groupUserDao) Get(ctx *imctx.Context, appId, groupId, userId int64) (*model.GroupUser, error) {
+func (*groupUserDao) Get(appId, groupId, userId int64) (*model.GroupUser, error) {
 	var groupUser = model.GroupUser{
 		AppId:   appId,
 		GroupId: groupId,
@@ -85,7 +84,7 @@ func (*groupUserDao) Get(ctx *imctx.Context, appId, groupId, userId int64) (*mod
 }
 
 // Add 将用户添加到群组
-func (*groupUserDao) Add(ctx *imctx.Context, appId, groupId, userId int64, label, extra string) error {
+func (*groupUserDao) Add(appId, groupId, userId int64, label, extra string) error {
 	_, err := db.DBCli.Exec("insert ignore into group_user(app_id,group_id,user_id,label,extra) values(?,?,?,?,?)",
 		appId, groupId, userId, label, extra)
 	if err != nil {
@@ -96,7 +95,7 @@ func (*groupUserDao) Add(ctx *imctx.Context, appId, groupId, userId int64, label
 }
 
 // Delete 将用户从群组删除
-func (d *groupUserDao) Delete(ctx *imctx.Context, appId int64, groupId int64, userId int64) error {
+func (d *groupUserDao) Delete(appId int64, groupId int64, userId int64) error {
 	_, err := db.DBCli.Exec("delete from group_user where app_id = ? and group_id = ? and user_id = ?",
 		appId, groupId, userId)
 	if err != nil {
@@ -107,7 +106,7 @@ func (d *groupUserDao) Delete(ctx *imctx.Context, appId int64, groupId int64, us
 }
 
 // Update 更新用户群组信息
-func (*groupUserDao) Update(ctx *imctx.Context, appId, groupId, userId int64, label string, extra string) error {
+func (*groupUserDao) Update(appId, groupId, userId int64, label string, extra string) error {
 	_, err := db.DBCli.Exec("update group_user set label = ?,extra = ? where app_id = ? and group_id = ? and user_id = ?",
 		label, extra, appId, groupId, userId)
 	if err != nil {

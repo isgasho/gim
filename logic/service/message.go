@@ -1,11 +1,11 @@
 package service
 
 import (
+	"context"
 	"gim/logic/cache"
 	"gim/logic/dao"
 	"gim/logic/model"
 	"gim/public/grpclib"
-	"gim/public/imctx"
 	"gim/public/imerror"
 	"gim/public/logger"
 	"gim/public/pb"
@@ -20,12 +20,12 @@ type messageService struct{}
 var MessageService = new(messageService)
 
 // Add 添加消息
-func (*messageService) Add(ctx *imctx.Context, message model.Message) error {
-	return dao.MessageDao.Add(ctx, "message", message)
+func (*messageService) Add(ctx context.Context, message model.Message) error {
+	return dao.MessageDao.Add("message", message)
 }
 
 // ListByUserIdAndSeq 查询消息
-func (*messageService) ListByUserIdAndSeq(ctx *imctx.Context, appId, userId, seq int64) ([]model.Message, error) {
+func (*messageService) ListByUserIdAndSeq(ctx context.Context, appId, userId, seq int64) ([]model.Message, error) {
 	var err error
 	if seq == 0 {
 		seq, err = DeviceAckService.GetMaxByUserId(ctx, appId, userId)
@@ -34,7 +34,7 @@ func (*messageService) ListByUserIdAndSeq(ctx *imctx.Context, appId, userId, seq
 			return nil, err
 		}
 	}
-	messages, err := dao.MessageDao.ListBySeq(ctx, "message", appId, model.MessageObjectTypeUser, userId, seq)
+	messages, err := dao.MessageDao.ListBySeq("message", appId, model.MessageObjectTypeUser, userId, seq)
 	if err != nil {
 		logger.Sugar.Error(err)
 		return nil, err
@@ -43,7 +43,7 @@ func (*messageService) ListByUserIdAndSeq(ctx *imctx.Context, appId, userId, seq
 }
 
 // Send 消息发送
-func (s *messageService) Send(ctx *imctx.Context, sender model.Sender, req pb.SendMessageReq) error {
+func (s *messageService) Send(ctx context.Context, sender model.Sender, req pb.SendMessageReq) error {
 	switch req.ReceiverType {
 	case pb.ReceiverType_RT_USER:
 		if sender.SenderType == pb.SenderType_ST_USER {
@@ -77,7 +77,7 @@ func (s *messageService) Send(ctx *imctx.Context, sender model.Sender, req pb.Se
 }
 
 // SendToUser 消息发送至用户
-func (*messageService) SendToFriend(ctx *imctx.Context, sender model.Sender, req pb.SendMessageReq) error {
+func (*messageService) SendToFriend(ctx context.Context, sender model.Sender, req pb.SendMessageReq) error {
 	// 发给发送者
 	err := MessageService.SendToUser(ctx, sender, sender.SenderId, 0, req)
 	if err != nil {
@@ -96,7 +96,7 @@ func (*messageService) SendToFriend(ctx *imctx.Context, sender model.Sender, req
 }
 
 // SendToGroup 消息发送至群组（使用写扩散）
-func (*messageService) SendToGroup(ctx *imctx.Context, sender model.Sender, req pb.SendMessageReq) error {
+func (*messageService) SendToGroup(ctx context.Context, sender model.Sender, req pb.SendMessageReq) error {
 	users, err := GroupUserService.GetUsers(ctx, sender.AppId, req.ReceiverId)
 	if err != nil {
 		logger.Sugar.Error(err)
@@ -129,7 +129,7 @@ func IsInGroup(users []model.GroupUser, userId int64) bool {
 }
 
 // SendToChatRoom 消息发送至聊天室（读扩散）
-func (*messageService) SendToChatRoom(ctx *imctx.Context, sender model.Sender, req pb.SendMessageReq) error {
+func (*messageService) SendToChatRoom(ctx context.Context, sender model.Sender, req pb.SendMessageReq) error {
 	userIds, err := cache.LargeGroupUserCache.Members(sender.AppId, req.ReceiverId)
 	if err != nil {
 		logger.Sugar.Error(err)
@@ -193,7 +193,7 @@ func (*messageService) SendToChatRoom(ctx *imctx.Context, sender model.Sender, r
 }
 
 // StoreAndSendToUser 将消息持久化到数据库,并且消息发送至用户
-func (*messageService) SendToUser(ctx *imctx.Context, sender model.Sender, toUserId int64, roomSeq int64, req pb.SendMessageReq) error {
+func (*messageService) SendToUser(ctx context.Context, sender model.Sender, toUserId int64, roomSeq int64, req pb.SendMessageReq) error {
 	logger.Logger.Debug("message_store_send_to_user",
 		zap.String("message_id", req.MessageId),
 		zap.Int64("app_id", sender.AppId),
@@ -262,7 +262,7 @@ func (*messageService) SendToUser(ctx *imctx.Context, sender model.Sender, toUse
 		}
 
 		message := pb.Message{Message: &messageItem}
-		_, err = rpc_cli.ConnectIntClient.DeliverMessage(grpclib.ContextWithAddr(devices[i].ConnAddr), &pb.DeliverMessageReq{
+		_, err = rpc_cli.ConnectIntClient.DeliverMessage(grpclib.ContextWithAddr(ctx, devices[i].ConnAddr), &pb.DeliverMessageReq{
 			DeviceId: devices[i].DeviceId, Message: &message})
 		if err != nil {
 			logger.Sugar.Error(err)
